@@ -1,9 +1,5 @@
 ✅ 📦 Backend package.json
-In your ecommerce-backend/, create a package.json like this:
 
-json
-Copy
-Edit
 {
   "name": "ecommerce-backend",
   "version": "1.0.0",
@@ -27,20 +23,11 @@ Edit
     "nodemon": "^2.0.22"
   }
 }
-Key points:
 
-start → runs node server.js (for production)
-
-dev → runs with nodemon for auto-reloading during development
-
-Includes bcryptjs, dotenv, jsonwebtoken, mongoose, express, cors
 
 ✅ 💻 Frontend package.json
-In your ecommerce-frontend/, your package.json should look like this:
 
-json
-Copy
-Edit
+
 {
   "name": "ecommerce-frontend",
   "version": "1.0.0",
@@ -61,28 +48,5 @@ Edit
   "author": "Shristy Sharma",
   "license": "MIT"
 }
-Key points:
 
-Uses react-router-dom for routing
 
-Uses axios for HTTP requests
-
-The start script runs your React dev server on localhost:3000
-
-You can build a production version with npm run build
-
-⚡ How to Create These
-You can create package.json files automatically too:
-
-bash
-Copy
-Edit
-# Backend:
-npm init -y
-npm install express mongoose dotenv bcryptjs jsonwebtoken cors
-npm install --save-dev nodemon
-
-# Frontend:
-npx create-react-app ecommerce-frontend
-cd ecommerce-frontend
-npm install axios react-router-dom
