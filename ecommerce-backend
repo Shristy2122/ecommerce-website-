@@ -1,0 +1,136 @@
+// backend/server.js
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const authRoutes = require('./routes/auth');
+const productRoutes = require('./routes/product');
+const cartRoutes = require('./routes/cart');
+
+dotenv.config();
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+
+// Connect MongoDB
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch(err => console.log(err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+// backend/models/User.js
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+});
+
+module.exports = mongoose.model('User', UserSchema);
+// backend/models/Product.js
+const mongoose = require('mongoose');
+
+const ProductSchema = new mongoose.Schema({
+    title: String,
+    description: String,
+    price: Number,
+    image: String,
+    category: String
+});
+
+module.exports = mongoose.model('Product', ProductSchema);
+
+
+// backend/routes/auth.js
+const router = require('express').Router();
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// Register
+router.post('/register', async (req, res) => {
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPass = await bcrypt.hash(req.body.password, salt);
+
+        const newUser = new User({
+            username: req.body.username,
+            email: req.body.email,
+            password: hashedPass
+        });
+
+        const user = await newUser.save();
+        res.status(201).json(user);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+// Login
+router.post('/login', async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) return res.status(400).json("Invalid credentials");
+
+        const validPass = await bcrypt.compare(req.body.password, user.password);
+        if (!validPass) return res.status(400).json("Invalid credentials");
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.json({ token, user: { id: user._id, username: user.username } });
+
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+module.exports = router;
+
+// frontend/src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
+// frontend/src/components/ProductCard.js
+import React from 'react';
+
+const ProductCard = ({ product, addToCart }) => (
+  <div className="product-card">
+    <img src={product.image} alt={product.title} />
+    <h3>{product.title}</h3>
+    <p>${product.price}</p>
+    <button onClick={() => addToCart(product)}>Add to Cart</button>
+  </div>
+);
+
+export default ProductCard;
+
